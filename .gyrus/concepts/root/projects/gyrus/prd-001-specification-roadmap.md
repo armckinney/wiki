@@ -4,9 +4,9 @@ id: prd-001-specification-roadmap
 type: prd
 format: markdown
 category: technical
-version: 20
+version: 21
 status: active
-last_updated: 2026-11-12T05:49:34Z
+last_updated: 2026-11-12T06:34:27Z
 last_modified_by: ""
 tenant: root
 tags:
@@ -38,11 +38,6 @@ Outcome: a usable shared Git knowledge repository, clear storage-profile choices
 
 Git acceptance includes local regression tests and opt-in hosted validation. Both strategies, independent initiatives, schema/link/query isolation, conflict recovery, and fresh-session behavior must be verified. Documentation remains maintained as review comments are addressed; the completed remediation does not close all broader cleanup work automatically.
 
-### Cleanup carried forward
-
-- [ ] Complete the Codex refactor.
-  - [x] Rename/remove the `setup` package as appropriate.
-- [ ] Ensure documentation stays current across specifications, guides, standards, references, and archived records.
 
 ## 2. Stability
 
