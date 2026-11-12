@@ -4,9 +4,9 @@ id: spec-001-contract-schema
 type: specification
 format: markdown
 category: technical
-version: 9
+version: 10
 status: active
-last_updated: 2026-11-12T05:50:25Z
+last_updated: 2026-11-12T06:25:42Z
 last_modified_by: ""
 tenant: root
 ---
@@ -134,7 +134,7 @@ Normal Markdown reading/writing trims surrounding body whitespace, and serializa
 
 ## Templates and legacy conversion
 
-Persisted schema templates override embedded templates for schema retrieval. Template validation checks parseability and matching type when supplied; template placeholders/custom headings do not replace the code-defined concept validator or add new supported concept types.
+Persisted schema templates override embedded templates for schema retrieval. Template validation checks YAML frontmatter parseability and matching type when supplied, without decoding placeholders such as `last_updated: YYYY-MM-DD` as concrete concept values; template placeholders/custom headings do not replace the code-defined concept validator or add new supported concept types.
 
 The packaged `gyrus-migrate-sqlite-to-okf` skill provides an agent-led local conversion procedure separate from strict runtime readers. It requires installed Gyrus plus available file tools, and a SQLite-capable tool when database-only graph edges exist; it requires no Go installation or source checkout. The agent inventories the entire collection, merges legacy dependencies as `depends_on` with old/new typed links and SQLite edges, deduplicates qualified tuples, and removes link creation metadata. Short targets resolve only when unique; ambiguous or absent short targets require explicit recorded mappings. Already-qualified missing targets remain valid for OKF.
 
