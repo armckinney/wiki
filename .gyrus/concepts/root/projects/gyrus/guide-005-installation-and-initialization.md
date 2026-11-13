@@ -4,9 +4,9 @@ id: guide-005-installation-and-initialization
 type: guide
 format: markdown
 category: operations
-version: 11
+version: 12
 status: active
-last_updated: 2026-11-12T04:38:04Z
+last_updated: 2026-11-13T23:27:59Z
 last_modified_by: antigravity
 tenant: root
 tags:
@@ -31,21 +31,19 @@ This guide walks you through installing the `gyrus` standalone binary, initializ
 
 ## 📦 1. Installing the Gyrus Binary
 
-### From Binary Release / Source Build
+Install the `gyrus` binary via the installation script:
 
 ```bash
-git clone https://github.com/armckinney/gyrus.git
-cd gyrus
-make build
+curl -sSL https://raw.githubusercontent.com/armckinney/gyrus/main/packaging/install.sh | bash
 ```
 
 Verify the installation:
 
 ```bash
-./gyrus --help
+gyrus --help
 ```
 
-Ensure the compiled `gyrus` executable is moved to your system `PATH` (e.g. `/usr/local/bin/gyrus`) so client harnesses can launch it for Model Context Protocol (MCP) interactions.
+Ensure `gyrus` is available on your system `PATH` so client harnesses can launch it for Model Context Protocol (MCP) interactions.
 
 ---
 
@@ -59,7 +57,7 @@ graph TD
     B --> C["1. gyrus config init [--global]\n(Storage & Persistence Profile)"]
     B --> D["2. Native Harness Plugin Install\n(Codex, Antigravity, Copilot, Claude)"]
     C --> E[".gyrus.yaml or ~/.gyrus.yaml"]
-    D --> F["Remote Marketplace Installation\n(gyrus@armckinney)"]
+    D --> F["Centralized Marketplace\n(armckinney/ai-marketplace)"]
 ```
 
 ---
@@ -99,44 +97,11 @@ For remote Git, configure your Git credential manager for HTTPS or SSH credentia
 
 ---
 
-## 🤖 4. Installing Agent Plugin via Harness Marketplace
+## 🤖 4. Installing Agent Plugin via Centralized Marketplace
 
-Install Gyrus directly into your AI coding assistant using native harness plugin commands:
+The Gyrus agent plugin (skills, rules, and MCP server configuration) is distributed from the centralized [armckinney/ai-marketplace](https://github.com/armckinney/ai-marketplace) repository rather than inside `armckinney/gyrus`.
 
-### OpenAI Codex CLI
-
-```bash
-# Register the GitHub repository as a remote marketplace
-codex plugin marketplace add armckinney/gyrus
-
-# Install the gyrus plugin
-codex plugin add gyrus@armckinney
-```
-
-### Google Antigravity (AGY)
-
-```bash
-# Install directly from repository plugin path
-agy plugin install https://github.com/armckinney/gyrus/tree/main/packaging/plugins/gyrus
-```
-
-For workspace development inside the Gyrus repository, Antigravity automatically discovers local plugins via `.agents/plugins.json`.
-
-### GitHub Copilot CLI
-
-```bash
-# Register marketplace and install plugin
-copilot plugin marketplace add armckinney/gyrus
-copilot plugin install gyrus@armckinney
-```
-
-### Anthropic Claude Code
-
-```bash
-# Register marketplace and install plugin
-claude plugin marketplace add armckinney/gyrus
-claude plugin install gyrus@armckinney
-```
+Follow the [`gyrus` plugin guide](https://github.com/armckinney/ai-marketplace/blob/main/docs/plugins/gyrus.md) for current harness installation commands across Antigravity, Claude Code, Codex, and GitHub Copilot.
 
 ---
 
