@@ -2,11 +2,11 @@
 title: Centralized AI Marketplace Plugin Distribution
 id: adr-020-centralized-ai-marketplace-plugin-distribution
 type: adr
-format: ""
+format: markdown
 category: architecture
-version: 1
+version: 2
 status: proposed
-last_updated: 2026-11-13T23:27:25Z
+last_updated: 2026-11-13T23:27:29Z
 last_modified_by: ""
 tenant: root
 tags:
@@ -15,6 +15,9 @@ tags:
     - plugins
     - marketplace
     - ai-marketplace
+links:
+    - concept: root/projects/gyrus/adr-008-native-client-plugin-marketplace-distribution
+      rel: supersedes
 ---
 
 # ADR 020: Centralized AI Marketplace Plugin Distribution
