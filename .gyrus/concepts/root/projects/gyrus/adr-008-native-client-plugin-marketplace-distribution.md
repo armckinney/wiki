@@ -4,9 +4,9 @@ id: adr-008-native-client-plugin-marketplace-distribution
 type: adr
 format: markdown
 category: architecture
-version: 3
-status: accepted
-last_updated: 2026-10-16T16:47:49Z
+version: 4
+status: superseded
+last_updated: 2026-11-13T23:27:45Z
 last_modified_by: antigravity
 tenant: root
 tags:
