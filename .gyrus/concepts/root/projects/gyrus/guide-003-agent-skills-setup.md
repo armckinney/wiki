@@ -4,9 +4,9 @@ id: guide-003-agent-skills-setup
 type: guide
 format: markdown
 category: technical
-version: 8
-status: active
-last_updated: 2026-11-12T04:38:04Z
+version: 9
+status: archived
+last_updated: 2026-11-13T23:27:50Z
 last_modified_by: antigravity
 tenant: root
 tags:
