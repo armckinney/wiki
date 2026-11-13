@@ -4,9 +4,9 @@ id: standards-002-testing-strategy
 type: standards
 format: markdown
 category: technical
-version: 11
+version: 12
 status: active
-last_updated: 2026-11-12T05:49:34Z
+last_updated: 2026-11-13T23:29:23Z
 last_modified_by: ""
 tenant: root
 tags:
@@ -45,9 +45,9 @@ flowchart TD
     Providers --> CLI["CLI binary, arguments, output and exit codes"]
     Providers --> MCP["MCP tools, resources, prompts and stdio protocol"]
     Providers --> UI["Local UI rendering, search and graph APIs"]
-    CLI --> Product["Installation, plugin packaging and consumer workflows"]
+    CLI --> Product["CLI installation and Docker MCP consumer workflows"]
     MCP --> Product
-    Product --> Agent["Opt-in agent evaluation and live infrastructure"]
+    Product --> Agent["Live infrastructure acceptance checks"]
 ```
 
 | Level | Execution surface | Main evidence |
@@ -57,7 +57,7 @@ flowchart TD
 | CLI | `internal/cli`, `tests/cli` | Built binary, real flags/files, JSON/text output, process exit codes |
 | MCP | `internal/mcp`, `tests/mcp` | Handshake/discovery, tool results, resources/prompts, runtime branch forwarding and isolation |
 | UI | `internal/ui` | HTTP handlers, templates, document rendering, graph scope and deterministic ordering |
-| Distribution/agents | `tests/install`, `tests/plugins`, `tests/skills` | Installer/build checks, plugin layout, prompt-routing fixtures, explicitly enabled live evaluation |
+| Distribution | `tests/install` | Installer syntax/build checks and Docker MCP consumer workflows (plugin/skill validation lives in [`armckinney/ai-marketplace`](https://github.com/armckinney/ai-marketplace)) |
 
 Use isolated temporary roots and local bare repositories for default tests. PostgreSQL unit tests use mocks; a live database is separately enabled. A successful default run can include skipped external tests; report those skips rather than implying that every host or environment was exercised.
 
@@ -111,10 +111,9 @@ CI runs `go vet ./...`, explicitly fails on a nonempty formatting report, and ru
 | `GYRUS_TEST_POSTGRES_URL` | Enables `TestIntegration_PostgresLive` against the supplied isolated PostgreSQL database |
 | `GYRUS_TEST_GIT_URL` | Enables `TestGitLiveRemote` against the supplied disposable Git remote |
 | `GYRUS_TEST_GIT_RUN_ID` | Optional unique concept ID used by the live Git fixture; otherwise generated per run |
-| `RUN_AGENT_EVAL` or `RUN_E2E_TESTS` | A nonempty value enables the Antigravity evaluation script; its actual path depends on installed agent tooling |
 | `GYRUS_PROJECT`, `GYRUS_CONFIG` | Select runtime configuration; Makefile test targets clear them to avoid accidental fixture routing |
 
-These gates are independent: `make test-integration` does not automatically enable live Git/PostgreSQL or live agent evaluation. The existing agent script validates the plugin and attempts an `agy` prompt when available; without `agy` it checks MCP transport. Treat that as an integration smoke test, not a quality score for autonomous reasoning. Inspect the script's output to report which path ran.
+These gates are independent: `make test-integration` does not automatically enable live Git or PostgreSQL validation. Agent plugin manifests, skills, and marketplace validation are maintained and tested in [`armckinney/ai-marketplace`](https://github.com/armckinney/ai-marketplace).
 
 ## Live infrastructure runbooks
 
@@ -140,18 +139,14 @@ GYRUS_TEST_POSTGRES_URL='postgres://USER:PASSWORD@HOST:5432/gyrus_test?sslmode=r
 
 For a local disposable database, use its actual host/port and appropriate SSL setting. The integration test exercises storage, graph, native FTS, and query filters. Mocked provider tests independently verify expected-version conflicts, rollback, and query/decode failures. Do not infer live transaction or host behavior solely from mock results.
 
-### Docker and agent workflows
+### Docker workflow
 
 ```bash
 # Builds the binary and enables the existing Docker integration gate
 make test-integration
-
-# Build first: the evaluation script invokes the root binary
-make build
-RUN_AGENT_EVAL=1 go test ./tests/skills -run '^TestAntigravityIntegration$' -v -count=1
 ```
 
-Docker requires the executable and a running accessible daemon. Live agent evaluation requires the relevant installed/authenticated harness for a real prompt run. It can invoke external services; keep it outside the ordinary regression suite.
+Docker tests require the compiled executable and a running accessible daemon. Agent plugin validation resides externally in [`armckinney/ai-marketplace`](https://github.com/armckinney/ai-marketplace).
 
 ## Contract acceptance by subsystem
 
@@ -161,7 +156,7 @@ Docker requires the executable and a running accessible daemon. Live agent evalu
 - **CLI:** Required flags, positional qualified names, configuration generation, text/JSON payloads, exit codes, runtime branch arguments, and absence of retired commands. Schema validation is a local file operation.
 - **MCP:** Initialization and discovery, actual `gyrus_*` tools, text/JSON-text results, `memory://` resources, active ADR templates, storage error propagation, and independent Git sessions. Switches must wait for in-flight knowledge requests and never save configuration.
 - **UI:** Document/search rendering, fixed visible graph sources, display-only missing/filtered targets, edge/node deduplication, stable ordering, and HTTP errors without partial graph payloads.
-- **Distribution:** Canonical plugin manifests/skills/rules, installer syntax, binary build behavior, and client-specific packaging. Test behavior through installed public interfaces when validating consumer workflows.
+- **Distribution:** Installer syntax, binary build behavior, and Docker MCP consumer workflows (canonical plugin manifests, skills, and client marketplace catalogs are validated in [`armckinney/ai-marketplace`](https://github.com/armckinney/ai-marketplace)). Test behavior through installed public interfaces when validating consumer workflows.
 
 Keep test purpose and execution surface clear in names and comments. For substantial product/integration tests, the established header format records `[Test Level]`, `[Purpose]`, `[Execution Surface]`, and `[Assertions]`. Do not mark unexecuted scenarios complete or copy stale assertions into documentation.
 
