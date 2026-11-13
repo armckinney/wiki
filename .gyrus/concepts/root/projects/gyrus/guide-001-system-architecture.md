@@ -4,9 +4,9 @@ id: guide-001-system-architecture
 type: guide
 format: markdown
 category: architecture
-version: 5
+version: 6
 status: active
-last_updated: 2026-11-12T05:49:34Z
+last_updated: 2026-11-13T23:29:14Z
 last_modified_by: ""
 tenant: root
 ---
@@ -63,7 +63,7 @@ The drawing includes local SQLite document-index caches. The current local and G
 | `internal/provider` | Construct local/Git/PostgreSQL stores and the corresponding OKF/database adapters |
 | `internal/persistence` | Filesystem safety/locking/atomic replacement and database infrastructure |
 | `internal/cli`, `internal/mcp`, `internal/ui` | Public command, protocol, and local web interfaces |
-| `packaging/plugins/gyrus` | Client plugin manifests, skills/rules, and MCP launch configuration |
+| External plugin (`armckinney/ai-marketplace`) | Client plugin manifests, skills/rules, and MCP launch configuration (hosted in [`armckinney/ai-marketplace`](https://github.com/armckinney/ai-marketplace/tree/main/plugins/gyrus)) |
 
 Git session state stays in the Git store. CLI/MCP handlers access that provider through the application's generic store; runtime initiative names are not factory configuration or application-level Git fields. The server coordinates switching with whole requests so an operation cannot begin on one initiative and finish on another.
 
