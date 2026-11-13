@@ -4,9 +4,9 @@ id: tech-ref-004-client-lifecycle-matrix
 type: technical-reference
 format: markdown
 category: technical
-version: 6
-status: active
-last_updated: 2026-10-16T19:41:57Z
+version: 7
+status: archived
+last_updated: 2026-11-13T23:27:54Z
 last_modified_by: antigravity
 tenant: root
 tags:
