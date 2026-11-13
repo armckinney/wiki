@@ -4,9 +4,9 @@ id: adr-020-centralized-ai-marketplace-plugin-distribution
 type: adr
 format: markdown
 category: architecture
-version: 3
-status: proposed
-last_updated: 2026-11-13T23:27:34Z
+version: 4
+status: accepted
+last_updated: 2026-11-13T23:27:40Z
 last_modified_by: ""
 tenant: root
 tags:
