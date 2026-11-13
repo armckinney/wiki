@@ -4,9 +4,9 @@ id: prd-001-specification-roadmap
 type: prd
 format: markdown
 category: technical
-version: 21
+version: 22
 status: active
-last_updated: 2026-11-12T06:34:27Z
+last_updated: 2026-11-13T23:29:28Z
 last_modified_by: ""
 tenant: root
 tags:
@@ -20,7 +20,7 @@ tags:
 
 # Product roadmap
 
-This document is the authoritative delivery roadmap for Gyrus. The task content formerly maintained in root `TODO.md` is kept here so requirements, architecture context, and completion status can be maintained together. The root file now directs contributors to this document.
+This document is the authoritative delivery roadmap for Gyrus. The task content formerly maintained in root `TODO.md` is kept here so requirements, architecture context, and completion status can be maintained together. The legacy root `TODO.md` file has been retired in favor of this document.
 
 Gyrus's current foundation supports local filesystem/OKF, shared Git/OKF, and PostgreSQL/native FTS through CLI, local stdio MCP, and the existing local UI. The [architecture drawing](https://github.com/armckinney/wiki/blob/main/assets/drw_arch-gyrus.png) and [architecture guide](guide-001-system-architecture.md) describe the progression toward hosted team and enterprise intelligence services.
 
@@ -59,7 +59,7 @@ Outcome: shared hosted access for teams through MCP and a document-exploration U
 - [ ] Implement hosted Python MCP on Databricks Apps.
   - [ ] Add the Python/gRPC integration.
   - [ ] Build/package the MCP Databricks App.
-  - [ ] Update the agent plugin's MCP configuration for hosted access.
+  - [ ] Update the agent plugin's MCP configuration in `armckinney/ai-marketplace` for hosted access.
 
 The existing implementation serves local stdio MCP. Hosted transport, deployment, authentication, and the bridge to the core SDK need their own interfaces and acceptance tests. A PostgreSQL-compatible Lakebase target can use the database concept model; configuring a database alone does not implement the hosted MCP application.
 
