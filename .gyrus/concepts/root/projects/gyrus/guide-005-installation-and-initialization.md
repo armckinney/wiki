@@ -4,9 +4,9 @@ id: guide-005-installation-and-initialization
 type: guide
 format: markdown
 category: operations
-version: 12
+version: 13
 status: active
-last_updated: 2026-11-13T23:27:59Z
+last_updated: 2026-11-13T23:28:49Z
 last_modified_by: antigravity
 tenant: root
 tags:
@@ -17,8 +17,6 @@ tags:
     - marketplace
     - plugins
 links:
-    - concept: root/projects/gyrus/adr-008-native-client-plugin-marketplace-distribution
-      rel: depends_on
     - concept: root/projects/gyrus/prd-001-specification-roadmap
       rel: depends_on
 ---
