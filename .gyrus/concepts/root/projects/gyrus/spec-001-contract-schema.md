@@ -4,9 +4,9 @@ id: spec-001-contract-schema
 type: specification
 format: markdown
 category: technical
-version: 10
+version: 11
 status: active
-last_updated: 2026-11-12T06:25:42Z
+last_updated: 2026-11-13T23:29:19Z
 last_modified_by: ""
 tenant: root
 ---
@@ -146,4 +146,4 @@ Applying changed records requires backups outside the concept collection, quiesc
 - [Structural validation](https://github.com/armckinney/gyrus/blob/d1be370b2e4c1bfb843de05670ce6868c946b4e0/internal/domain/okf/validator.go), [qualified names](https://github.com/armckinney/gyrus/blob/d1be370b2e4c1bfb843de05670ce6868c946b4e0/internal/domain/okf/name.go), and [collection locations/scans](https://github.com/armckinney/gyrus/blob/d1be370b2e4c1bfb843de05670ce6868c946b4e0/internal/domain/okf/collection.go)
 - [Frontmatter order](https://github.com/armckinney/gyrus/blob/d1be370b2e4c1bfb843de05670ce6868c946b4e0/internal/format/frontmatter.go), [relationship-shape checks](https://github.com/armckinney/gyrus/blob/d1be370b2e4c1bfb843de05670ce6868c946b4e0/internal/format/relationships.go), and [Markdown serialization](https://github.com/armckinney/gyrus/blob/d1be370b2e4c1bfb843de05670ce6868c946b4e0/internal/format/okf.go)
 - [Lifecycle transitions](https://github.com/armckinney/gyrus/blob/d1be370b2e4c1bfb843de05670ce6868c946b4e0/internal/domain/lifecycle/engine.go) and [file-backed patch rules](https://github.com/armckinney/gyrus/blob/d1be370b2e4c1bfb843de05670ce6868c946b4e0/internal/domain/lifecycle/patch.go)
-- [OKF graph persistence](https://github.com/armckinney/gyrus/blob/d1be370b2e4c1bfb843de05670ce6868c946b4e0/internal/provider/graph/okf/graph.go) and [legacy conversion](https://github.com/armckinney/gyrus/blob/d1be370b2e4c1bfb843de05670ce6868c946b4e0/packaging/plugins/gyrus/skills/gyrus-migrate-sqlite-to-okf/references/sqlite-to-okf.md)
+- [OKF graph persistence](https://github.com/armckinney/gyrus/blob/d1be370b2e4c1bfb843de05670ce6868c946b4e0/internal/provider/graph/okf/graph.go) and [legacy conversion](https://github.com/armckinney/ai-marketplace/blob/main/plugins/gyrus/skills/gyrus-migrate-sqlite-to-okf/references/sqlite-to-okf.md)
