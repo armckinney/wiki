@@ -4,9 +4,9 @@ id: adr-021-cache-providers-and-two-phase-commit
 type: adr
 format: markdown
 category: architecture
-version: 2
-status: proposed
-last_updated: 2026-11-16T06:31:26Z
+version: 3
+status: accepted
+last_updated: 2026-11-16T06:31:30Z
 last_modified_by: ""
 tenant: root
 tags:
