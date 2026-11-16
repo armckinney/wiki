@@ -4,9 +4,9 @@ id: tech-ref-002-config-schema
 type: technical-reference
 format: markdown
 category: technical
-version: 6
+version: 7
 status: active
-last_updated: 2026-11-12T04:38:04Z
+last_updated: 2026-11-16T06:32:04Z
 last_modified_by: ""
 tenant: root
 ---
@@ -23,7 +23,41 @@ Generate `.gyrus.yaml` with `gyrus config init --profile local|git|postgres`. Ad
 | git | git | okf | okf | okf | Several code repositories share one remote knowledge repository |
 | postgres | postgres | postgres | postgres | postgres_fts | A team needs shared database-backed storage and native full-text search |
 
-Only these complete stacks are supported. Omitting secondary providers selects the stack appropriate to storage. Hybrid combinations, cloud/blob providers, and their aliases are rejected before opening resources. No cache provider is implemented.
+Only these complete storage stacks are supported. Omitting secondary providers selects the stack appropriate to storage. Hybrid storage/index/graph/search combinations, cloud/blob providers, and their aliases are rejected before opening resources.
+
+## Cache and write-lock / 2PC configuration
+
+Optional `cache`, `lock`, and `redis` blocks configure caching and synchronous Two-Phase Commit (2PC) coordination:
+
+| Setting | Default | Valid values / notes |
+| --- | --- | --- |
+| `cache.provider` | `none` | `none`, `sqlite`, `redis` (supported on any stack) |
+| `cache.ttl` | `5m` | Positive Go duration string (`5m`, `30s`, `1h`) |
+| `cache.path` | `~/.gyrus/cache.db` | Optional SQLite path override (defaults to global `~/.gyrus/cache.db`, never relative `./.gyrus/cache.db`) |
+| `lock.provider` | `postgres` (for `postgres`) / `none` (for `localfs`, `git`) | `none`, `postgres`, `redis` (`postgres` requires `postgres` storage; `redis` is supported on `postgres` and `git`, rejected on `localfs`) |
+| `lock.ttl` | `30s` | Positive Go duration string governing 2PC lock leases |
+| `redis.connection_string` | `""` | Required when `cache.provider: redis` or `lock.provider: redis` (supports `redis://`, `rediss://`, and in-process `memory://` for tests) |
+
+Example enabling global SQLite caching on a Git profile:
+
+```yaml
+cache:
+  provider: sqlite
+  ttl: 5m
+```
+
+Example enabling Redis cache and 2PC locking on PostgreSQL or Git:
+
+```yaml
+cache:
+  provider: redis
+  ttl: 5m
+lock:
+  provider: redis
+  ttl: 30s
+redis:
+  connection_string: "redis://localhost:6379/0"
+```
 
 ## Standard configurations
 
