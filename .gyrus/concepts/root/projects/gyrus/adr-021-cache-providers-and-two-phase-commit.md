@@ -2,11 +2,11 @@
 title: Cache providers and synchronous two-phase commit
 id: adr-021-cache-providers-and-two-phase-commit
 type: adr
-format: ""
+format: markdown
 category: architecture
-version: 1
+version: 2
 status: proposed
-last_updated: 2026-11-16T06:31:13Z
+last_updated: 2026-11-16T06:31:26Z
 last_modified_by: ""
 tenant: root
 tags:
@@ -17,6 +17,9 @@ tags:
     - redis
     - 2pc
     - locking
+links:
+    - concept: root/projects/gyrus/prd-001-specification-roadmap
+      rel: implements
 ---
 
 # Architecture Decision Record: Cache providers and synchronous two-phase commit
