@@ -4,9 +4,9 @@ id: standards-002-testing-strategy
 type: standards
 format: markdown
 category: technical
-version: 12
+version: 13
 status: active
-last_updated: 2026-11-13T23:29:23Z
+last_updated: 2026-11-16T06:32:14Z
 last_modified_by: ""
 tenant: root
 tags:
@@ -108,7 +108,8 @@ CI runs `go vet ./...`, explicitly fails on a nonempty formatting report, and ru
 | Variable | Current effect |
 | --- | --- |
 | `RUN_DOCKER_TESTS` or `RUN_INTEGRATION_TESTS` | A nonempty value enables the live Docker test in `tests/install`; missing Docker or an inaccessible daemon still causes a skip |
-| `GYRUS_TEST_POSTGRES_URL` | Enables `TestIntegration_PostgresLive` against the supplied isolated PostgreSQL database |
+| `GYRUS_TEST_POSTGRES_URL` | Enables `TestIntegration_PostgresLive` and `TestIntegration_PostgresLive2PC` against the supplied isolated PostgreSQL database |
+| `GYRUS_TEST_REDIS_URL` | Enables `TestIntegration_RedisLive` against the supplied Redis server (offline tests use `memory://`) |
 | `GYRUS_TEST_GIT_URL` | Enables `TestGitLiveRemote` against the supplied disposable Git remote |
 | `GYRUS_TEST_GIT_RUN_ID` | Optional unique concept ID used by the live Git fixture; otherwise generated per run |
 | `GYRUS_PROJECT`, `GYRUS_CONFIG` | Select runtime configuration; Makefile test targets clear them to avoid accidental fixture routing |
@@ -137,7 +138,16 @@ GYRUS_TEST_POSTGRES_URL='postgres://USER:PASSWORD@HOST:5432/gyrus_test?sslmode=r
   go test ./tests/integration -run '^TestIntegration_PostgresLive$' -v -count=1
 ```
 
-For a local disposable database, use its actual host/port and appropriate SSL setting. The integration test exercises storage, graph, native FTS, and query filters. Mocked provider tests independently verify expected-version conflicts, rollback, and query/decode failures. Do not infer live transaction or host behavior solely from mock results.
+For a local disposable database, use its actual host/port and appropriate SSL setting. The integration tests exercise storage, graph, native FTS, query filters, and live PostgreSQL 2PC lock contention. Mocked provider tests independently verify expected-version conflicts, rollback, query/decode failures, and expired 2PC lock recovery. Do not infer live transaction or host behavior solely from mock results.
+
+### Redis
+
+`.devcontainer/docker-compose.yaml` provides a `redis:7-alpine` sidecar (`testing` / `sidecars` profiles). Unit and race tests run offline using `memory://`, while live Redis cache and lock contention checks run with:
+
+```bash
+GYRUS_TEST_REDIS_URL='redis://localhost:6379/0' \
+  go test ./tests/integration -run '^TestIntegration_RedisLive$' -v -count=1
+```
 
 ### Docker workflow
 
@@ -151,7 +161,7 @@ Docker tests require the compiled executable and a running accessible daemon. Ag
 ## Contract acceptance by subsystem
 
 - **Domain/configuration:** Required metadata, qualified names, scope/project derivation, invalid paths, minimal typed links, complete provider stacks, strict YAML errors, and lifecycle/body-immutability rules.
-- **Storage/query:** Local atomic replacement and locks; Git commit history, selected branches and rejected-push recovery; PostgreSQL version checks/rollback; malformed collections, duplicate identities, exact filters, and result limits.
+- **Storage/query/caching/2PC:** Local atomic replacement and locks; Git commit history, selected branches and rejected-push recovery; PostgreSQL version checks/rollback; `none`/`sqlite` (`~/.gyrus/cache.db`)/`redis` cache TTL, `(mtime, size)` invalidation, and branch isolation; PostgreSQL/Redis 2PC lock contention (`ConflictError` / exit code `4`), expired lock lazy rollback recovery, and atomic multi-source edge batches; malformed collections, duplicate identities, exact filters, and result limits.
 - **Graph/context:** Directional relations, backlinks, cycles/self-links, provider-specific missing-target behavior, deterministic traversal, and project/dependency/reference ordering. `max_concepts` caps selected context. CLI `--max-tokens` is currently accepted but not enforced; there is no current token-truncation acceptance claim.
 - **CLI:** Required flags, positional qualified names, configuration generation, text/JSON payloads, exit codes, runtime branch arguments, and absence of retired commands. Schema validation is a local file operation.
 - **MCP:** Initialization and discovery, actual `gyrus_*` tools, text/JSON-text results, `memory://` resources, active ADR templates, storage error propagation, and independent Git sessions. Switches must wait for in-flight knowledge requests and never save configuration.
