@@ -4,20 +4,24 @@ id: spec-004-core-engine
 type: specification
 format: markdown
 category: technical
-version: 9
+version: 10
 status: active
-last_updated: 2026-11-12T04:38:04Z
+last_updated: 2026-11-16T06:31:45Z
 last_modified_by: ""
 tenant: root
 ---
 
-Gyrus composes ConceptStore, IndexStore, GraphStore, and SearchProvider through the application container. Storage is constructed once, then injected into the selected providers. Effective provider validation runs before opening storage/database/network resources.
+Gyrus composes ConceptStore, IndexStore, GraphStore, SearchProvider, CacheProvider, and TransactionCoordinator through the application container. Storage is constructed once, optionally wrapped by the CachedStore decorator when caching is enabled, and injected into the selected providers and lifecycle engine. Effective provider validation runs before opening storage/database/network resources.
 
 ## Provider contracts
 
-ConceptStore provides Create, Get, version-checked Update, Delete, and Archive. Optional ConceptScanner.Scan(context.Context, func(Concept) error) (SyncReport, error) enumerates authoritative validated concepts. Localfs and Git implement this capability; PostgreSQL storage does not in this release.
+ConceptStore provides Create, Get, version-checked Update, Delete, and Archive. Optional ConceptScanner.Scan(context.Context, func(Concept) error) (SyncReport, error) enumerates authoritative validated concepts. Localfs and Git implement this capability; PostgreSQL storage does not in this release, and CachedStore preserves ConceptScanner strictly when the underlying store implements it.
 
-IndexStore exposes Index, Remove, and Search. GraphStore exposes UpsertEdges, DeleteEdges, Neighbors, and Traverse. SearchProvider accepts SearchQuery including Query, Filter, and MaxResults. Engine.Search retains the default-limit convenience method; Engine.SearchQuery accepts explicit limits. PostgreSQL storage/index/search delegate to one shared full-text query implementation. SQLite index/graph/search adapters and CLI/MCP sync operations have been removed; internal/persistence/db retains SQLite connection support for future cache work.
+IndexStore exposes Index, Remove, and Search. GraphStore exposes UpsertEdges, DeleteEdges, Neighbors, and Traverse. SearchProvider accepts SearchQuery including Query, Filter, and MaxResults. Engine.Search retains the default-limit convenience method; Engine.SearchQuery accepts explicit limits. PostgreSQL storage/index/search delegate to one shared full-text query implementation. SQLite index/graph/search adapters and CLI/MCP sync operations remain removed; SQLite persistence now powers the optional local `sqlite` cache provider (`~/.gyrus/cache.db`).
+
+CacheProvider exposes TTL-bounded GetConcept/PutConcept/InvalidateConcept, GetSnapshot/PutSnapshot/InvalidateSnapshot, InvalidateNamespace, and GetSchema/PutSchema/InvalidateSchema across `none` (default), `sqlite`, and `redis`. On `localfs`, CachedStore records `(mtime, size)` fingerprints to detect external edits/deletions while skipping redundant Markdown parsing on unchanged files. On `git`, caches are namespaced dynamically by `git:<repo_hash>:<active_branch>` so initiative switches remain strictly isolated.
+
+TransactionCoordinator exposes Acquire, Prepare, Commit, and Rollback across `none`, `postgres`, and `redis`.
 
 ## Direct-scan OKF providers
 
@@ -29,7 +33,7 @@ Graph reads derive source-owned {concept, rel} links keyed by qualified concept 
 
 Localfs serializes cooperating processes with a stable root lock and replaces complete payloads atomically. Git refreshes before scans/mutations and pushes without force; rejected pushes are conflicts and cannot leak unconfirmed data. Cloud/blob providers are removed.
 
-Positive expected versions are checked before mutation. Conflicts map to CLI code 4. Multi-source graph batches preflight sources, then apply one patch per source in qualified-name order; later failure reports already-applied sources. There is no cross-concept transaction, automatic retry, cloud-wide snapshot, or automatic cross-concept transaction. Local IDs may repeat across tenants/projects; duplicate qualified names and inconsistent locations fail queries.
+Positive expected versions are checked before mutation. Conflicts map to CLI code 4. Multi-source graph batches preflight sources, then apply one patch per source in qualified-name order; without a 2PC coordinator (`lock.provider: none`), later failure reports already-applied sources. When a PostgreSQL or Redis `TransactionCoordinator` is active (`postgres` or `redis`), `Engine` executes mutations via synchronous Two-Phase Commit (2PC): acquiring sorted resource locks with bounded contention retry (returning `*gyrus.ConflictError` / CLI exit code 4), persisting `PREPARED` before-state snapshots, executing storage/history/index/graph/schema updates (including all-or-nothing `Engine.UpsertEdges` rollback), invalidating affected cache entries, and committing or rolling back. Expired `PREPARED` transactions are lazily rolled back on subsequent lock acquisition. Local IDs may repeat across tenants/projects; duplicate qualified names and inconsistent locations fail queries.
 
 PostgreSQL checks expected versions under its row lock and returns gyrus.ConflictError with the qualified name, update operation, and expected/actual versions. Rejection rolls back without concept/history writes; MCP returns a tool error and CLI returns code 4.
 
