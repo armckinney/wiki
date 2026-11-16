@@ -4,9 +4,9 @@ id: guide-001-system-architecture
 type: guide
 format: markdown
 category: architecture
-version: 6
+version: 7
 status: active
-last_updated: 2026-11-13T23:29:14Z
+last_updated: 2026-11-16T06:32:09Z
 last_modified_by: ""
 tenant: root
 ---
@@ -49,18 +49,18 @@ The local profile writes the code repository's filesystem; any commit/push of th
 
 These are complete supported stacks. All use the same public concept/relationship model. Hosting a server and choosing PostgreSQL storage are separate concerns: the database stack exists; the hosted Databricks MCP/UI applications in the drawing are roadmap work.
 
-The drawing includes local SQLite document-index caches. The current local and Git stacks scan authoritative OKF content directly and have no selectable persistent cache provider. Cache choices `none`, `sqlite`, and `redis` belong to the [roadmap](prd-001-specification-roadmap.md). Schema/query correctness must not depend on an unimplemented cache.
+The drawing includes local SQLite and Redis caches. Optional cache providers (`none` default, `sqlite` defaulting to `~/.gyrus/cache.db`, and `redis`) cache full `Concept` envelopes, schemas, and snapshots with TTL-bounded read-through and immediate write invalidation, using `(mtime, size)` file fingerprints for `localfs` and branch-scoped namespaces for `git`. See [ADR 021](adr-021-cache-providers-and-two-phase-commit.md).
 
 ## 2. Runtime components and package responsibilities
 
 | Component | Responsibility |
 | --- | --- |
-| `pkg/gyrus` | Public `Concept`, mutation/query/result types, and `ConceptStore`, `IndexStore`, `GraphStore`, `SearchProvider` contracts; optional scanners/schema stores |
+| `pkg/gyrus` | Public `Concept`, mutation/query/result types, and `ConceptStore`, `IndexStore`, `GraphStore`, `SearchProvider`, `CacheProvider`, `TransactionCoordinator` contracts; optional scanners/schema stores |
 | `internal/config` | File discovery, strict nested YAML, defaults, qualified project context, and complete-stack validation |
-| `internal/app` | Generic dependency container; shares one concept store with the lifecycle engine and adapters |
+| `internal/app` | Generic dependency container; shares one concept store, cache, and 2PC coordinator with the lifecycle engine and adapters |
 | `internal/domain/okf` and `internal/format` | Parse/serialize concept payloads, validate metadata/identity/typed links, derive collection locations, and supply embedded templates |
-| `internal/domain/lifecycle` | Orchestrate creation/updates, lifecycle/body-immutability rules, search, graph operations, schema resolution, and context assembly |
-| `internal/provider` | Construct local/Git/PostgreSQL stores and the corresponding OKF/database adapters |
+| `internal/domain/lifecycle` | Orchestrate creation/updates, 2PC lock/prepare/commit coordination, lifecycle/body-immutability rules, search, graph operations, schema resolution, and context assembly |
+| `internal/provider` | Construct local/Git/PostgreSQL stores, cache decorators (`none`, `sqlite`, `redis`), 2PC coordinators (`none`, `postgres`, `redis`), and OKF/database adapters |
 | `internal/persistence` | Filesystem safety/locking/atomic replacement and database infrastructure |
 | `internal/cli`, `internal/mcp`, `internal/ui` | Public command, protocol, and local web interfaces |
 | External plugin (`armckinney/ai-marketplace`) | Client plugin manifests, skills/rules, and MCP launch configuration (hosted in [`armckinney/ai-marketplace`](https://github.com/armckinney/ai-marketplace/tree/main/plugins/gyrus)) |
@@ -77,7 +77,7 @@ flowchart LR
     Store --> Adapters["Shared index / graph / search adapters"]
 ```
 
-Local writes use cooperating-process locks and atomic file replacement. Git reloads confirmed remote state and pushes normal commits without force; rejected competing pushes become conflicts. PostgreSQL uses its existing transactions and expected-version checks. These protections are per concept; the current system provides no distributed queue or cross-concept two-phase commit.
+Local writes use cooperating-process locks and atomic file replacement (`lock.provider: none`). Git reloads confirmed remote state and pushes normal commits without force; rejected competing pushes become conflicts, and Git can optionally pair with Redis-backed 2PC (`lock.provider: redis`). PostgreSQL defaults to synchronous PostgreSQL Two-Phase Commit (`lock.provider: postgres`, using `concept_locks` and `prepared_transactions`) and also supports Redis 2PC (`lock.provider: redis`). Active lock contention retries briefly (`~2s`) before returning `*gyrus.ConflictError` (CLI exit code `4`), and expired `PREPARED` transactions are lazily rolled back on subsequent lock acquisition. Asynchronous execution queues remain Phase 5 scalability work.
 
 ```mermaid
 flowchart LR
@@ -153,7 +153,7 @@ flowchart LR
     HostedUI -. "document exploration / read" .-> Lakebase
 ```
 
-The database provider is implemented; hosted apps, remote authentication, Python/gRPC integration, and their deployment are planned. The hosted UI's direct database read arrow mirrors the drawing and does not settle its final API/access-control contract. The drawing leaves transaction queues versus two-phase commit open; the roadmap tracks that decision before stronger team write guarantees are claimed.
+The database provider, `sqlite`/`redis` cache providers, and synchronous PostgreSQL/Redis 2PC coordination are implemented; hosted apps, remote authentication, Python/gRPC integration, and their deployment remain planned. The hosted UI's direct database read arrow mirrors the drawing and does not settle its final API/access-control contract. The transaction-queue question is resolved in favor of synchronous storage/Redis 2PC for Phase 2 read-after-write consistency, with asynchronous execution queues deferred to Phase 5 scalability.
 
 ## 7. Planned enterprise control and data planes
 
