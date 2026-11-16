@@ -4,9 +4,9 @@ id: prd-001-specification-roadmap
 type: prd
 format: markdown
 category: technical
-version: 22
+version: 23
 status: active
-last_updated: 2026-11-13T23:29:28Z
+last_updated: 2026-11-16T06:31:41Z
 last_modified_by: ""
 tenant: root
 tags:
@@ -43,12 +43,12 @@ Git acceptance includes local regression tests and opt-in hosted validation. Bot
 
 Outcome: predictable consistency and resource use as more clients share knowledge.
 
-- [ ] Implement cache providers: `none` (default), `sqlite`, and `redis`.
-- [ ] Implement stronger write locking / two-phase commit, initially for PostgreSQL and later Redis-backed coordination.
+- [x] Implement cache providers: `none` (default), `sqlite`, and `redis`.
+- [x] Implement stronger write locking / two-phase commit, initially for PostgreSQL and later Redis-backed coordination.
 
-Current local/Git stacks have no selectable persistent cache provider; they derive ephemeral OKF snapshots. PostgreSQL already has row/version checks, but those checks are not a distributed two-phase commit system. Cache freshness, lock ownership/TTL, failure recovery, and retry/idempotency behavior need explicit design before these tasks are considered complete.
+Selectable `cache.provider` (`none`, `sqlite` defaulting to `~/.gyrus/cache.db`, and `redis`) provides TTL-bounded read-through and write-invalidating caching across full concepts, schemas, and snapshots—with `(mtime, size)` fingerprinting for `localfs` and branch-isolated caching for `git`. Synchronous Two-Phase Commit (`lock.provider`: `none`, `postgres`, `redis`) coordinates writes across concepts, history, index, graph edges, and schemas using sorted lock keys, a `30s` default TTL, bounded contention retry returning `*gyrus.ConflictError` (CLI exit code `4`), and lazy rollback recovery of expired `PREPARED` transactions. See [ADR 021](adr-021-cache-providers-and-two-phase-commit.md).
 
-The drawing asks whether the hosted MCP server can manage transaction queues or whether another coordination mechanism is needed. Resolve that with the storage/transaction design rather than silently choosing one from the diagram.
+This design resolves the drawing's transaction-queue question in favor of storage/Redis-backed synchronous 2PC rather than an in-process MCP queue, preserving immediate read-after-write consistency across CLI and hosted MCP clients; asynchronous execution queues remain scoped to Phase 5 scalability. Note that `localfs` and `git` without `redis` coordination continue using `lock.provider: none` without claiming distributed 2PC.
 
 ## 3. Platform MVP
 
